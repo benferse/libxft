@@ -1,5 +1,4 @@
 /*
- * $Id$
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *
