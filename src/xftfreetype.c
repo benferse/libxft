@@ -1,7 +1,7 @@
 /*
  * $XFree86: xc/lib/Xft/xftfreetype.c,v 1.29tsi Exp $
  *
- * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright Â© 2000 Keith Packard, member of The XFree86 Project, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -81,6 +81,7 @@ _XftGetFile (const FcChar8 *file, int id)
     f->face = 0;
     f->xsize = 0;
     f->ysize = 0;
+    f->matrix.xx = f->matrix.xy = f->matrix.yx = f->matrix.yy = 0;
     return f;
 }
 
@@ -103,6 +104,7 @@ _XftGetFaceFile (FT_Face face)
     f->face = face;
     f->xsize = 0;
     f->ysize = 0;
+    f->matrix.xx = f->matrix.xy = f->matrix.yx = f->matrix.yy = 0;
     return f;
 }
 
@@ -638,6 +640,7 @@ XftFontOpenInfo (Display	*dpy,
     int			alloc_size;
     int			ascent, descent, height;
     int			i;
+    int			num_glyphs;
 
     if (!info)
 	return 0;
@@ -699,55 +702,16 @@ XftFontOpenInfo (Display	*dpy,
 	    case FC_RGBA_BGR:
 	    case FC_RGBA_VRGB:
 	    case FC_RGBA_VBGR:
-		pf.depth = 32;
-		pf.type = PictTypeDirect;
-		pf.direct.alpha = 24;
-		pf.direct.alphaMask = 0xff;
-		pf.direct.red = 16;
-		pf.direct.redMask = 0xff;
-		pf.direct.green = 8;
-		pf.direct.greenMask = 0xff;
-		pf.direct.blue = 0;
-		pf.direct.blueMask = 0xff;
-		format = XRenderFindFormat(dpy, 
-					   PictFormatType|
-					   PictFormatDepth|
-					   PictFormatAlpha|
-					   PictFormatAlphaMask|
-					   PictFormatRed|
-					   PictFormatRedMask|
-					   PictFormatGreen|
-					   PictFormatGreenMask|
-					   PictFormatBlue|
-					   PictFormatBlueMask,
-					   &pf, 0);
+		format = XRenderFindStandardFormat (dpy, PictStandardARGB32);
 		break;
 	    default:
-		pf.depth = 8;
-		pf.type = PictTypeDirect;
-		pf.direct.alpha = 0;
-		pf.direct.alphaMask = 0xff;
-		format = XRenderFindFormat(dpy, 
-					   PictFormatType|
-					   PictFormatDepth|
-					   PictFormatAlpha|
-					   PictFormatAlphaMask,
-					   &pf, 0);
+		format = XRenderFindStandardFormat (dpy, PictStandardA8);
 		break;
 	    }
 	}
 	else
 	{
-	    pf.depth = 1;
-	    pf.type = PictTypeDirect;
-	    pf.direct.alpha = 0;
-	    pf.direct.alphaMask = 0x1;
-	    format = XRenderFindFormat(dpy, 
-				       PictFormatType|
-				       PictFormatDepth|
-				       PictFormatAlpha|
-				       PictFormatAlphaMask,
-				       &pf, 0);
+	    format = XRenderFindStandardFormat (dpy, PictStandardA1);
 	}
 	
 	if (!format)
@@ -769,8 +733,13 @@ XftFontOpenInfo (Display	*dpy,
 	rehash_value = 0;
     }
     
+    /*
+     * Sometimes the glyphs are numbered 1..n, other times 0..n-1,
+     * accept either numbering scheme by making room in the table
+     */
+    num_glyphs = face->num_glyphs + 1;
     alloc_size = (sizeof (XftFontInt) + 
-		  face->num_glyphs * sizeof (XftGlyph *) +
+		  num_glyphs * sizeof (XftGlyph *) +
 		  hash_value * sizeof (XftUcsHash));
     font = malloc (alloc_size);
     
@@ -867,8 +836,8 @@ XftFontOpenInfo (Display	*dpy,
      * Per glyph information
      */
     font->glyphs = (XftGlyph **) (font + 1);
-    memset (font->glyphs, '\0', face->num_glyphs * sizeof (XftGlyph *));
-    font->num_glyphs = face->num_glyphs;
+    memset (font->glyphs, '\0', num_glyphs * sizeof (XftGlyph *));
+    font->num_glyphs = num_glyphs;
     /*
      * Unicode hash table information
      */
@@ -929,9 +898,13 @@ XftFontCopy (Display *dpy, XftFont *public)
 static void
 XftFontDestroy (Display *dpy, XftFont *public)
 {
-    XftFontInt	*font = (XftFontInt *) public;
-    int		i;
+    XftDisplayInfo  *info = _XftDisplayInfoGet (dpy, False);
+    XftFontInt	    *font = (XftFontInt *) public;
+    int		    i;
     
+    /* note reduction in memory use */
+    if (info)
+	info->glyph_memory -= font->glyph_memory;
     /* Clean up the info */
     XftFontInfoEmpty (dpy, &font->info);
     /* Free the glyphset */

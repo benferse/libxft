@@ -1,7 +1,7 @@
 /*
- * $XFree86: xc/lib/Xft/xftint.h,v 1.36 2002/08/22 08:09:40 keithp Exp $
+ * $Id$
  *
- * Copyright � 2000 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright Â© 2000 Keith Packard, member of The XFree86 Project, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
