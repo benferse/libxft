@@ -182,14 +182,6 @@ _XftUnlockFile (XftFtFile *f)
 	_XftLockError ("too many file unlocks");
 }
 
-#if HAVE_FT_BITMAP_SIZE_Y_PPEM
-#define X_SIZE(face,i) ((face)->available_sizes[i].x_ppem)
-#define Y_SIZE(face,i) ((face)->available_sizes[i].y_ppem)
-#else
-#define X_SIZE(face,i) ((face)->available_sizes[i].width << 6)
-#define Y_SIZE(face,i) ((face)->available_sizes[i].height << 6)
-#endif
-
 FcBool
 _XftSetFace (XftFtFile *f, FT_F26Dot6 xsize, FT_F26Dot6 ysize, FT_Matrix *matrix)
 {
@@ -206,42 +198,39 @@ _XftSetFace (XftFtFile *f, FT_F26Dot6 xsize, FT_F26Dot6 ysize, FT_Matrix *matrix
 	 */
 	if (!(face->face_flags & FT_FACE_FLAG_SCALABLE))
 	{
-	    int		i, best = 0;
+	    FT_Short    width = xsize >> 6;
+	    FT_Short    height = ysize >> 6;
+	    int		i, best = -1;
 
 #define xft_abs(a)	((a) < 0 ? -(a) : (a))
 #define dist(a,b)	(xft_abs((a)-(b)))
 
-	    for (i = 1; i < face->num_fixed_sizes; i++)
+#if !HAVE_FT_BITMAP_SIZE_Y_PPEM
+#define y_ppem height
+#define x_ppem width
+#endif
+	    for (i = 0; i < face->num_fixed_sizes; i++)
 	    {
-		if (dist (ysize, Y_SIZE(face,i)) <
-		    dist (ysize, Y_SIZE(face, best)) ||
-		    (dist (ysize, Y_SIZE(face, i)) ==
-		     dist (ysize, Y_SIZE(face, best)) &&
-		     dist (xsize, X_SIZE(face, i)) <
-		     dist (xsize, X_SIZE(face, best))))
+		if (best == -1 ||
+		    dist (height, face->available_sizes[i].y_ppem >> 6) <
+		    dist (height, face->available_sizes[best].y_ppem >> 6) ||
+		    (dist (height, face->available_sizes[i].y_ppem >> 6) ==
+		     dist (height, face->available_sizes[best].y_ppem >> 6) &&
+		     dist (width, face->available_sizes[i].x_ppem >> 6) <
+		     dist (width, face->available_sizes[best].x_ppem >> 6)))
 		{
 		    best = i;
 		}
 	    }
-	    /* 
-	     * Freetype 2.1.7 and earlier used width/height
-	     * for matching sizes in the BDF and PCF loaders.
-	     * This has been fixed for 2.1.8.  Because BDF and PCF
-	     * files have but a single strike per file, we can
-	     * simply try both sizes.
-	     */
-	    if (
-#if HAVE_FT_BITMAP_SIZE_Y_PPEM
-		FT_Set_Char_Size (face, face->available_sizes[best].x_ppem,
-				  face->available_sizes[best].y_ppem, 0, 0) != 0
-		&&
-#endif
-		FT_Set_Char_Size (face, face->available_sizes[best].width << 6,
-				  face->available_sizes[best].height << 6,
-				  0, 0) != 0)
+	    if (FT_Set_Char_Size (face, face->available_sizes[best].x_ppem,
+				  face->available_sizes[best].y_ppem, 0, 0) != 0)
 	    {
 		return False;
 	    }
+#if !HAVE_FT_BITMAP_SIZE_Y_PPEM
+#undef y_ppem
+#undef x_ppem
+#endif
 	}
 	else
     	{
