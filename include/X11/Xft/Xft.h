@@ -33,13 +33,13 @@
 
 #define XFT_MAJOR	2
 #define XFT_MINOR	1
-#define XFT_REVISION	2
+#define XFT_REVISION	4
 #define XFT_VERSION	((XFT_MAJOR * 10000) + (XFT_MINOR * 100) + (XFT_REVISION))
 #define XftVersion	XFT_VERSION
 
 #include <stdarg.h>
 #include <ft2build.h>
-#include <freetype/freetype.h>
+#include FT_FREETYPE_H
 #include <fontconfig/fontconfig.h>
 #include <X11/extensions/Xrender.h>
 

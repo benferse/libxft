@@ -33,6 +33,10 @@
 #ifndef _XFTINT_H_
 #define _XFTINT_H_
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <X11/Xlib.h>
 #include <X11/Xmd.h>
 #define _XFT_NO_COMPAT_

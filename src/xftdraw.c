@@ -809,7 +809,7 @@ XftDrawRect (XftDraw		*draw,
 {
     if (_XftDrawRenderPrepare (draw))
     {
-	XRenderFillRectangle (draw->dpy, PictOpOver, draw->render.pict,
+	XRenderFillRectangle (draw->dpy, PictOpSrc, draw->render.pict,
 			      &color->color, x, y, width, height);
     }
     else if (_XftDrawCorePrepare (draw, color))
@@ -916,7 +916,10 @@ XftDrawSetClipRectangles (XftDraw		*draw,
     /*
      * Check for quick exit
      */
-    if (draw->clip_type == XftClipTypeRectangles && 
+    if (draw->clip_type == XftClipTypeRectangles &&
+	draw->clip.rect->n == n &&
+	(n == 0 || (draw->clip.rect->xOrigin == xOrigin &&
+		    draw->clip.rect->yOrigin == yOrigin)) &&
 	!memcmp (XftClipRects (draw->clip.rect), rects, n * sizeof (XRectangle)))
     {
 	return True;

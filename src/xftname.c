@@ -33,13 +33,14 @@ static const FcObjectType	_XftObjectTypes[] = {
 
 #define NUM_OBJECT_TYPES    (sizeof _XftObjectTypes / sizeof _XftObjectTypes[0])
 
-Bool	_XftNameInitialized;
+FcBool	_XftNameInitialized;
 
 void 
 _XftNameInit (void)
 {
     if (_XftNameInitialized)
 	return;
+    _XftNameInitialized = FcTrue;
     FcNameRegisterObjectTypes (_XftObjectTypes, NUM_OBJECT_TYPES);
 }
 
@@ -55,13 +56,27 @@ XftNameUnparse (FcPattern *pat, char *dest, int len)
 {
     FcChar8 *name;
 
+    _XftNameInit ();
     name = FcNameUnparse (pat);
     if (!name)
 	return FcFalse;
     if (strlen ((char *) name) + 1 > len)
     {
+	FcPattern *new = FcPatternDuplicate (pat);
 	free (name);
-	return FcFalse;
+	FcPatternDel (new, FC_LANG);
+	FcPatternDel (new, FC_CHARSET);
+	name = FcNameUnparse (new);
+	FcPatternDestroy (new);
+	if (!name)
+	    return FcFalse;
+	if (strlen ((char *) name) + 1 > len)
+	{
+	    strncpy (dest, ((char *) name), (size_t) len - 1);
+	    dest[len - 1] = '\0';
+	    free (name);
+	    return FcFalse;
+	}
     }
     strcpy (dest, ((char *) name));
     free (name);
