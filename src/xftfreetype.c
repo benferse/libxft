@@ -208,9 +208,6 @@ _XftSetFace (XftFtFile *f, FT_F26Dot6 xsize, FT_F26Dot6 ysize, FT_Matrix *matrix
 #if !HAVE_FT_BITMAP_SIZE_Y_PPEM
 #define y_ppem height
 #define x_ppem width
-#warning using old freetype without y_ppem
-#else
-#warning using new freetype with y_ppem
 #endif
 	    for (i = 0; i < face->num_fixed_sizes; i++)
 	    {
