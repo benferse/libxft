@@ -1,7 +1,6 @@
 /*
- * $XFree86: xc/lib/Xft/XftCompat.h,v 1.4 2002/05/24 05:54:02 keithp Exp $
  *
- * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright Â© 2001 Keith Packard, member of The XFree86 Project, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -111,6 +110,7 @@ typedef FcObjectSet	XftObjectSet;
 #define XftObjectSetDestroy	FcObjectSetDestroy
 #define XftObjectSetVaBuild	FcObjectSetVaBuild
 #define XftObjectSetBuild	FcObjectSetBuild
+
 #define XftFontSetMatch		FcFontSetMatch
 #define XftFontSetDestroy	FcFontSetDestroy
 
