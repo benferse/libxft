@@ -1,6 +1,12 @@
 libXft - X FreeType library
 ---------------------------
+## Readme first
+This is a fork of the [libXft](https://gitlab.freedesktop.org/xorg/lib/libxft)
+library that integrates the [patch](https://gitlab.freedesktop.org/xorg/lib/libxft/-/merge_requests/1)
+that prevents crashes when rendering emojis. This has been sitting in PR for
+about two years, with no sign of being merged, so here we are :)
 
+## Upstream actual README content
 libXft is the client side font rendering library, using libfreetype,
 libX11, and the X Render extension to display anti-aliased text.
 
